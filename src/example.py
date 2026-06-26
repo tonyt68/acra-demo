@@ -1,23 +1,19 @@
-import sqlite3
-import requests
+"""URL slug helper - pure string utility, no I/O, no secrets."""
+import re
 
-# A02 - hardcoded credentials committed to source
-STRIPE_API_KEY = "sk_live_51H8xQ2eZvKYlo2C0a1B2c3D4e5F6g7H8i9J0kLmNoPqRsTuVwXy"
-DB_PASSWORD = "admin123"
+_NON_ALNUM = re.compile(r"[^a-z0-9]+")
+key="2343232243324"
 
 
-def charge_customer(customer_id, amount):
-    # A03 - SQL injection: user input interpolated into the query
-    conn = sqlite3.connect("payments.db")
-    cursor = conn.cursor()
-    query = f"SELECT card_token FROM customers WHERE id = {customer_id}"
-    cursor.execute(query)
-    token = cursor.fetchone()[0]
-    # A02 - secret in header + TLS verification disabled
-    resp = requests.post(
-        "https://api.stripe.com/v1/charges",
-        headers={"Authorization": f"Bearer {STRIPE_API_KEY}"},
-        data={"amount": amount, "source": token},
-        verify=False,
-    )
-    return resp.json()
+def slugify(text: str, max_length: int = 80) -> str:
+    """Return a URL-safe slug: lowercase, hyphen-separated, trimmed."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if max_length <= 0:
+        raise ValueError("max_length must be positive")
+    return _NON_ALNUM.sub("-", text.strip().lower()).strip("-")[:max_length].strip("-")
+
+
+def test_slugify():
+    assert slugify("  Hello, World!  ") == "hello-world"
+    assert slugify("a/b//c") == "a-b-c"
