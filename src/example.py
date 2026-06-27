@@ -16,4 +16,3 @@ def slugify(text: str, max_length: int = 80) -> str:
 def test_slugify():
     assert slugify("  Hello, World!  ") == "hello-world"
     assert slugify("a/b//c") == "a-b-c"
-
